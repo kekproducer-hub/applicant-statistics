@@ -1,0 +1,18 @@
+{
+  "name": "경희사이버대 입시통계 & 미래전략",
+  "short_name": "KHCU입시",
+  "description": "경희사이버대학교 7개년(2020~2026) 입시 통계 및 학과별 미래 전략 모바일 대시보드 앱",
+  "start_url": "./경희사이버대_입시_모바일앱.html",
+  "display": "standalone",
+  "background_color": "#F8FAFC",
+  "theme_color": "#00205B",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>경희사이버대 입시통계 & 전략 모바일 앱</title>
+  
+  <!-- PWA & Mobile Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="KHCU입시">
+  <meta name="theme-color" content="#00205B">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+
+  <!-- Tailwind CSS & Chart.js -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            khu: {
+              red: '#990000',
+              darkred: '#7A0000',
+              navy: '#00205B',
+              darknavy: '#001438',
+              gold: '#C59B27',
+              gray: '#F8FAFC'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800;900&display=swap');
+    * { -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+      background-color: #F8FAFC;
+      overscroll-behavior-y: none;
+    }
+    .safe-bottom {
+      padding-bottom: max(16px, env(safe-area-inset-bottom));
+    }
+    .safe-top {
+      padding-top: max(12px, env(safe-area-inset-top));
+    }
+    .nav-item.active {
+      color: #990000;
+      font-weight: 700;
+    }
+    .nav-item.active svg {
+      stroke: #990000;
+    }
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .badge-star { background-color: #FEF3C7; color: #92400E; border: 1px solid #F59E0B; }
+    .badge-cashcow { background-color: #D1FAE5; color: #065F46; border: 1px solid #10B981; }
+    .badge-question { background-color: #E0E7FF; color: #3730A3; border: 1px solid #6366F1; }
+    .badge-dog { background-color: #FEE2E2; color: #991B1B; border: 1px solid #EF4444; }
+  </style>
+</head>
+<body class="flex flex-col min-h-screen text-slate-800 select-none pb-24">
+
+  <!-- APP FIXED TOP HEADER -->
+  <header class="bg-khu-navy text-white sticky top-0 z-40 shadow-md safe-top border-b border-khu-red/50">
+    <div class="max-w-md md:max-w-2xl lg:max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-2.5">
+        <div class="w-8 h-8 rounded-lg bg-khu-red flex items-center justify-center font-black text-white text-base shadow-inner">
+          K
+        </div>
+        <div>
+          <div class="flex items-center space-x-1.5">
+            <span class="text-[10px] font-bold bg-khu-gold text-slate-900 px-1.5 py-0.5 rounded">2020~2026</span>
+            <span class="text-[10px] text-slate-300">경희사이버대</span>
+          </div>
+          <h1 class="text-base font-bold tracking-tight text-white">입시통계 & 미래전략 앱</h1>
+        </div>
+      </div>
+      
+      <div class="flex items-center space-x-2">
+        <button onclick="shareApp()" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-200 active:scale-90 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+        </button>
+        <button onclick="showInfoModal()" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-200 active:scale-90 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- PWA INSTALL PROMPT BANNER (CONDITIONAL) -->
+  <div id="pwaBanner" class="bg-gradient-to-r from-khu-red to-rose-700 text-white px-4 py-2 text-xs flex justify-between items-center shadow-inner">
+    <div class="flex items-center space-x-2">
+      <span class="text-base">📱</span>
+      <span><strong>홈 화면에 추가</strong>하시면 앱처럼 편리하게 이용할 수 있습니다.</span>
+    </div>
+    <div class="flex items-center space-x-1.5">
+      <button onclick="dismissPwaBanner()" class="text-rose-200 text-xs px-2 py-1">닫기</button>
+      <button onclick="installPwaAction()" class="bg-white text-khu-red font-bold px-2.5 py-1 rounded text-xs shadow-sm">설치</button>
+    </div>
+  </div>
+
+  <!-- MAIN APP CONTAINER -->
+  <main class="max-w-md md:max-w-2xl lg:max-w-4xl mx-auto w-full px-4 pt-4 flex-1">
+
+    <!-- ==================== VIEW 1: 🏠 홈 (HOME) ==================== -->
+    <div id="view-home" class="app-view space-y-4">
+      
+      <!-- Welcome Hero Card -->
+      <div class="bg-gradient-to-br from-khu-navy via-slate-900 to-slate-800 text-white rounded-2xl p-5 shadow-lg relative overflow-hidden">
+        <div class="absolute -right-4 -bottom-6 opacity-10 text-white text-9xl font-black pointer-events-none">
+          K
+        </div>
+        <div class="relative z-10">
+          <div class="inline-flex items-center space-x-1 bg-khu-red/90 px-2 py-0.5 rounded text-[11px] font-bold text-white mb-2">
+            <span>2026학년도 1학기 확정 결산</span>
+          </div>
+          <h2 class="text-xl font-black leading-snug">
+            2년 연속 V자 대반등 달성!<br>
+            <span class="text-khu-gold">5,640명 지원 (+14.5%)</span>
+          </h2>
+          <p class="text-xs text-slate-300 mt-2 leading-relaxed">
+            재난안전학부(501명)의 폭발적 성장과 첨단 공학 3개 학과 신설(391명 순증)이 학교 전체의 성공적 체질 개선을 견인했습니다.
+          </p>
+
+          <div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-white/10 text-center">
+            <div class="bg-white/10 rounded-xl p-2.5">
+              <span class="text-[11px] text-slate-300 block">학사편입 (7개년 연속↑)</span>
+              <strong class="text-lg font-black text-rose-300">688명</strong>
+              <span class="text-[10px] text-rose-400 block">+105.4% 폭증</span>
+            </div>
+            <div class="bg-white/10 rounded-xl p-2.5">
+              <span class="text-[11px] text-slate-300 block">공학·안전 클러스터</span>
+              <strong class="text-lg font-black text-khu-gold">1,212명</strong>
+              <span class="text-[10px] text-amber-300 block">점유율 21.5%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick KPI Mini Cards -->
+      <div class="grid grid-cols-2 gap-3">
+        <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-3 active:bg-slate-50 transition" onclick="switchNav('view-yearly')">
+          <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center font-bold text-lg">
+            📈
+          </div>
+          <div>
+            <span class="text-[11px] text-slate-500 font-semibold block">7개년 누적 지원</span>
+            <strong class="text-base font-extrabold text-slate-900">37,948명</strong>
+          </div>
+        </div>
+
+        <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-3 active:bg-slate-50 transition" onclick="switchNav('view-tracks')">
+          <div class="w-10 h-10 rounded-xl bg-red-50 text-khu-red flex items-center justify-center font-bold text-lg">
+            🏢
+          </div>
+          <div>
+            <span class="text-[11px] text-slate-500 font-semibold block">산업체 위탁 (B2B)</span>
+            <strong class="text-base font-extrabold text-slate-900">633명</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- High-Growth Top Departments -->
+      <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+        <div class="flex justify-between items-center mb-3">
+          <h3 class="font-bold text-sm text-slate-900 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            2026 급상승 & 전략 핵심 학과 TOP 5
+          </h3>
+          <button onclick="switchNav('view-depts')" class="text-xs font-semibold text-khu-red">전체보기 ›</button>
+        </div>
+
+        <div class="space-y-2">
+          <!-- Item 1 -->
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between active:scale-[0.98] transition cursor-pointer" onclick="openDeptModalByName('재난안전학부 (구 미래인간과학)')">
+            <div class="flex items-center space-x-2.5">
+              <span class="w-6 h-6 rounded-full bg-amber-100 text-amber-800 font-bold text-xs flex items-center justify-center">1</span>
+              <div>
+                <strong class="text-xs text-slate-900 block">재난안전학부 (소방·안전공학)</strong>
+                <span class="text-[10px] text-slate-500">3년 만에 2.8배 폭증 (179명 → 501명)</span>
+              </div>
+            </div>
+            <div class="text-right">
+              <strong class="text-sm font-black text-khu-red">501명</strong>
+              <span class="text-[10px] text-emerald-600 block font-bold">+53.7%</span>
+            </div>
+          </div>
+
+          <!-- Item 2 -->
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between active:scale-[0.98] transition cursor-pointer" onclick="openDeptModalByName('한국어문화학부(과)')">
+            <div class="flex items-center space-x-2.5">
+              <span class="w-6 h-6 rounded-full bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center">2</span>
+              <div>
+                <strong class="text-xs text-slate-900 block">한국어문화학부 (한국어교육)</strong>
+                <span class="text-[10px] text-slate-500">학사편입 172명 집중 (전공의 53.4%)</span>
+              </div>
+            </div>
+            <div class="text-right">
+              <strong class="text-sm font-black text-slate-900">429명</strong>
+              <span class="text-[10px] text-emerald-600 block font-bold">견고한 1위</span>
+            </div>
+          </div>
+
+          <!-- Item 3 -->
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between active:scale-[0.98] transition cursor-pointer" onclick="openDeptModalByName('AI기계제어공학과 (2026 신설)')">
+            <div class="flex items-center space-x-2.5">
+              <span class="w-6 h-6 rounded-full bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center">3</span>
+              <div>
+                <strong class="text-xs text-slate-900 block">AI기계제어공학과 (신설)</strong>
+                <span class="text-[10px] text-slate-500">신설 첫해 대성공 안착</span>
+              </div>
+            </div>
+            <div class="text-right">
+              <strong class="text-sm font-black text-indigo-700">145명</strong>
+              <span class="text-[10px] text-indigo-600 block font-bold">신설 1위</span>
+            </div>
+          </div>
+
+          <!-- Item 4 -->
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between active:scale-[0.98] transition cursor-pointer" onclick="openDeptModalByName('스마트건축공학과 (2026 신설)')">
+            <div class="flex items-center space-x-2.5">
+              <span class="w-6 h-6 rounded-full bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center">4</span>
+              <div>
+                <strong class="text-xs text-slate-900 block">스마트건축공학과 (신설)</strong>
+                <span class="text-[10px] text-slate-500">BIM/건축기사 자격증 연계</span>
+              </div>
+            </div>
+            <div class="text-right">
+              <strong class="text-sm font-black text-indigo-700">129명</strong>
+              <span class="text-[10px] text-indigo-600 block font-bold">신설 안착</span>
+            </div>
+          </div>
+
+          <!-- Item 5 -->
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between active:scale-[0.98] transition cursor-pointer" onclick="openDeptModalByName('일본학과')">
+            <div class="flex items-center space-x-2.5">
+              <span class="w-6 h-6 rounded-full bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center">5</span>
+              <div>
+                <strong class="text-xs text-slate-900 block">일본학과</strong>
+                <span class="text-[10px] text-slate-500">어문계열 최고 성장률</span>
+              </div>
+            </div>
+            <div class="text-right">
+              <strong class="text-sm font-black text-slate-900">167명</strong>
+              <span class="text-[10px] text-emerald-600 block font-bold">+119.7%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Action Buttons -->
+      <div class="grid grid-cols-2 gap-2 text-xs">
+        <button onclick="switchNav('view-strategy')" class="p-3 bg-khu-red text-white font-bold rounded-xl shadow-sm text-center active:scale-95 transition flex items-center justify-center gap-1.5">
+          <span>🎯</span> 미래 입시 5대 전략 보기
+        </button>
+        <button onclick="downloadCSV()" class="p-3 bg-slate-800 text-white font-bold rounded-xl shadow-sm text-center active:scale-95 transition flex items-center justify-center gap-1.5">
+          <span>📥</span> 엑셀(CSV) 전체 다운로드
+        </button>
+      </div>
+
+    </div>
+
+    <!-- ==================== VIEW 2: 📈 연도별 (YEARLY) ==================== -->
+    <div id="view-yearly" class="app-view hidden space-y-4">
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+        <h3 class="font-bold text-sm text-slate-900 mb-1">7개년 연도별 지원자 추이 (2020~2026)</h3>
+        <p class="text-[11px] text-slate-500 mb-3">정원내/외 누적 스택 차트 (단위: 명)</p>
+        <div class="h-56">
+          <canvas id="mobileYearlyChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Yearly Card List -->
+      <div class="space-y-2.5">
+        <h4 class="text-xs font-bold text-slate-600 px-1">학년도별 상세 내역 (터치하여 확인)</h4>
+        <div id="yearlyCardsContainer" class="space-y-2">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== VIEW 3: 🎓 학과별 (DEPTS) ==================== -->
+    <div id="view-depts" class="app-view hidden space-y-4">
+      
+      <!-- Search & Filters -->
+      <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+        <div class="relative">
+          <input type="text" id="mobileDeptSearch" onkeyup="filterMobileDepts()" placeholder="학과명 검색 (예: 안전, 한국어, 건축...)" class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-khu-red">
+          <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        </div>
+        
+        <!-- Category Filter Chips -->
+        <div class="flex space-x-1.5 overflow-x-auto hide-scrollbar py-1">
+          <button onclick="filterMobileDeptCat('all')" class="cat-chip active text-[11px] font-bold px-3 py-1 rounded-full bg-slate-800 text-white whitespace-nowrap">전체</button>
+          <button onclick="filterMobileDeptCat('안전·공학')" class="cat-chip text-[11px] font-medium px-3 py-1 rounded-full bg-slate-100 text-slate-600 whitespace-nowrap">안전·공학</button>
+          <button onclick="filterMobileDeptCat('사회복지')" class="cat-chip text-[11px] font-medium px-3 py-1 rounded-full bg-slate-100 text-slate-600 whitespace-nowrap">사회복지</button>
+          <button onclick="filterMobileDeptCat('인문·어학')" class="cat-chip text-[11px] font-medium px-3 py-1 rounded-full bg-slate-100 text-slate-600 whitespace-nowrap">인문·어학</button>
+          <button onclick="filterMobileDeptCat('상경')" class="cat-chip text-[11px] font-medium px-3 py-1 rounded-full bg-slate-100 text-slate-600 whitespace-nowrap">상경</button>
+          <button onclick="filterMobileDeptCat('문화·예술')" class="cat-chip text-[11px] font-medium px-3 py-1 rounded-full bg-slate-100 text-slate-600 whitespace-nowrap">문화·예술</button>
+        </div>
+      </div>
+
+      <!-- Department Cards List -->
+      <div id="mobileDeptCardsList" class="space-y-2">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+
+    <!-- ==================== VIEW 4: 📋 전형별 (TRACKS) ==================== -->
+    <div id="view-tracks" class="app-view hidden space-y-4">
+      
+      <!-- Bachelor Transfer Feature Card -->
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex justify-between items-start">
+          <div>
+            <span class="text-[10px] font-bold text-khu-red bg-red-50 px-2 py-0.5 rounded">핵심 성장 동력</span>
+            <h3 class="text-sm font-bold text-slate-900 mt-1">학사편입 7개년 무패 성장</h3>
+          </div>
+          <span class="text-2xl font-black text-khu-red">688명</span>
+        </div>
+        <p class="text-xs text-slate-600 mt-2 leading-relaxed">
+          2020년 335명에서 2026년 688명으로 **105.4% 폭증**. 4년제 대졸 성인학습자의 자격증 및 제2전공 취득 수요가 지속 유입되고 있습니다.
+        </p>
+        <div class="h-44 mt-3">
+          <canvas id="mobileBachelorChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Other Out-quota Tracks -->
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+        <h4 class="font-bold text-xs text-slate-800">2026학년도 정원외 주요 세부전형 비교</h4>
+        
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <div class="p-3 rounded-xl bg-blue-50 border border-blue-100">
+            <span class="text-[11px] text-blue-700 font-semibold block">산업체 위탁 (B2B)</span>
+            <strong class="text-base font-extrabold text-blue-900">633명</strong>
+            <span class="text-[10px] text-blue-600 block mt-0.5">안정적 협약 유지</span>
+          </div>
+
+          <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-100">
+            <span class="text-[11px] text-emerald-700 font-semibold block">기회균형 (2배 성장)</span>
+            <strong class="text-base font-extrabold text-emerald-900">336명</strong>
+            <span class="text-[10px] text-emerald-600 block mt-0.5">공공 교육기회 확대</span>
+          </div>
+
+          <div class="p-3 rounded-xl bg-amber-50 border border-amber-100">
+            <span class="text-[11px] text-amber-700 font-semibold block">군 위탁 (회복세)</span>
+            <strong class="text-base font-extrabold text-amber-900">155명</strong>
+            <span class="text-[10px] text-amber-600 block mt-0.5">24년 저점(87) 탈출</span>
+          </div>
+
+          <div class="p-3 rounded-xl bg-purple-50 border border-purple-100">
+            <span class="text-[11px] text-purple-700 font-semibold block">외국인 전형</span>
+            <strong class="text-base font-extrabold text-purple-900">48명</strong>
+            <span class="text-[10px] text-purple-600 block mt-0.5">글로벌자율학부 연계</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ==================== VIEW 5: 🎯 전략 (STRATEGY) ==================== -->
+    <div id="view-strategy" class="app-view hidden space-y-4">
+      
+      <!-- 5 Pillars Accordion -->
+      <div class="bg-gradient-to-r from-khu-navy to-slate-900 text-white p-4 rounded-2xl shadow-md">
+        <span class="text-[10px] font-bold text-khu-gold bg-slate-800 px-2 py-0.5 rounded">미래 입시 추진 5대 전략</span>
+        <h3 class="text-base font-black mt-1">경희사이버대 2027~2030 로드맵</h3>
+        <p class="text-xs text-slate-300 mt-1">사이버대 1위 도약을 위한 실행 과제</p>
+
+        <div class="mt-3 space-y-1.5 text-xs">
+          <div class="p-2 bg-white/10 rounded-lg">
+            <strong class="text-khu-gold">1. 테크 & 안전 메카:</strong> 기사자격증 패스 연계 및 Virtual Lab 전면화
+          </div>
+          <div class="p-2 bg-white/10 rounded-lg">
+            <strong class="text-khu-gold">2. 학사편입 1,000명:</strong> 대졸자 2년 완성 자격증 패키지 퍼포먼스 마케팅
+          </div>
+          <div class="p-2 bg-white/10 rounded-lg">
+            <strong class="text-khu-gold">3. 부진학과 AX 개편:</strong> 호텔관광 테크화, 자산관리 프롭테크화, 어문 AI실무화
+          </div>
+          <div class="p-2 bg-white/10 rounded-lg">
+            <strong class="text-khu-gold">4. B2B 단체 수주:</strong> 100대 기업 중대재해 예방 협약 및 군 간부 전역 트랙
+          </div>
+          <div class="p-2 bg-white/10 rounded-lg">
+            <strong class="text-khu-gold">5. 글로벌 K-에듀:</strong> 100% 원격 해외 학위 확대 및 지원서 AI 챗봇 도입
+          </div>
+        </div>
+      </div>
+
+      <!-- BCG Filter -->
+      <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+        <span class="text-xs font-bold text-slate-700 block">BCG 매트릭스 학과별 액션 플랜</span>
+        <div class="flex space-x-1.5 overflow-x-auto hide-scrollbar py-1">
+          <button onclick="filterMobileBcg('all')" class="mobile-bcg-btn active text-[11px] font-bold px-3 py-1 rounded-full bg-slate-800 text-white whitespace-nowrap">전체</button>
+          <button onclick="filterMobileBcg('star')" class="mobile-bcg-btn text-[11px] font-medium px-3 py-1 rounded-full bg-slate-100 text-slate-600 whitespace-nowrap">Stars (스타)</button>
+          <button onclick="filterMobileBcg('cashcow')" class="mobile-bcg-btn text-[11px] font-medium px-3 py-1 rounded-full bg-slate-100 text-slate-600 whitespace-nowrap">Cash Cows (현금젖소)</button>
+          <button onclick="filterMobileBcg('question')" class="mobile-bcg-btn text-[11px] font-medium px-3 py-1 rounded-full bg-slate-100 text-slate-600 whitespace-nowrap">Question Marks (신성장)</button>
+          <button onclick="filterMobileBcg('dog')" class="mobile-bcg-btn text-[11px] font-medium px-3 py-1 rounded-full bg-slate-100 text-slate-600 whitespace-nowrap">Dogs (재구조화)</button>
+        </div>
+      </div>
+
+      <!-- Strategy Cards Container -->
+      <div id="mobileStrategyCardsList" class="space-y-2.5">
+        <!-- Populated by JS -->
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ==================== DEPARTMENT BOTTOM SHEET MODAL ==================== -->
+  <div id="deptBottomSheet" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex flex-col justify-end transition-opacity duration-300">
+    <div class="bg-white rounded-t-3xl p-5 max-h-[85vh] overflow-y-auto w-full max-w-md md:max-w-2xl mx-auto shadow-2xl space-y-4">
+      <!-- Handle bar -->
+      <div class="w-12 h-1.5 bg-slate-300 rounded-full mx-auto -mt-1 mb-2"></div>
+      
+      <div class="flex justify-between items-start">
+        <div>
+          <span id="modalDeptCategory" class="text-[10px] font-bold text-khu-red bg-red-50 px-2 py-0.5 rounded">카테고리</span>
+          <h3 id="modalDeptName" class="text-base font-extrabold text-slate-900 mt-1">학과명</h3>
+        </div>
+        <button onclick="closeDeptModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center font-bold">✕</button>
+      </div>
+
+      <!-- 2026 Snapshot -->
+      <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 grid grid-cols-3 text-center text-xs">
+        <div>
+          <span class="text-slate-400 block text-[10px]">2026 지원자</span>
+          <strong id="modalDept2026" class="text-sm font-extrabold text-khu-red">-</strong>
+        </div>
+        <div>
+          <span class="text-slate-400 block text-[10px]">7개년 누적</span>
+          <strong id="modalDeptTotal" class="text-sm font-extrabold text-slate-800">-</strong>
+        </div>
+        <div>
+          <span class="text-slate-400 block text-[10px]">학사편입</span>
+          <strong id="modalDeptBachelor" class="text-sm font-extrabold text-rose-700">-</strong>
+        </div>
+      </div>
+
+      <!-- Mini Trend Chart -->
+      <div>
+        <span class="text-xs font-bold text-slate-700 block mb-1">7개년 지원자 추이 (2020~2026)</span>
+        <div class="h-44 bg-slate-50 p-2 rounded-xl border border-slate-100">
+          <canvas id="modalTrendChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Strategy & Persona Info -->
+      <div class="space-y-2 text-xs">
+        <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+          <strong class="text-slate-800 block text-[11px] mb-0.5">🎯 타깃 수험생:</strong>
+          <p id="modalDeptPersona" class="text-slate-600 leading-relaxed"></p>
+        </div>
+
+        <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+          <strong class="text-slate-800 block text-[11px] mb-0.5">💡 핵심 경쟁력 (USP):</strong>
+          <p id="modalDeptUsp" class="text-slate-600 leading-relaxed"></p>
+        </div>
+
+        <div class="p-3 rounded-xl bg-red-50/70 border border-red-100">
+          <strong class="text-khu-red block text-[11px] mb-0.5">🚀 미래 입시 실행 전략:</strong>
+          <p id="modalDeptStrategy" class="text-slate-700 font-medium leading-relaxed"></p>
+        </div>
+      </div>
+
+      <button onclick="closeDeptModal()" class="w-full py-3 bg-khu-navy text-white text-xs font-bold rounded-xl active:bg-slate-800">
+        닫기
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== APP INFO MODAL ==================== -->
+  <div id="infoModal" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-5 max-w-sm w-full shadow-2xl space-y-3 text-xs">
+      <h3 class="font-bold text-slate-900 text-sm">경희사이버대 입시 모바일 앱 안내</h3>
+      <p class="text-slate-600 leading-relaxed">
+        본 모바일 앱은 2020학년도부터 2026학년도까지 7개년 1학기 공식 지원자 통계 결산 자료를 바탕으로 제작되었습니다.
+      </p>
+      <div class="p-3 bg-slate-50 rounded-xl space-y-1 text-[11px] text-slate-500">
+        <p>• 별도 설치 프로그램 없이 모바일 브라우저에서 바로 구동</p>
+        <p>• 홈 화면 추가(PWA) 지원으로 네이티브 앱처럼 사용 가능</p>
+        <p>• 데이터 원본: 경희사이버대 입학처 결산 통계</p>
+      </div>
+      <button onclick="hideInfoModal()" class="w-full py-2.5 bg-khu-red text-white font-bold rounded-xl active:bg-khu-darkred">
+        확인
+      </button>
+    </div>
+  </div>
+
+  <!-- FIXED BOTTOM NAVIGATION BAR -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-40 safe-bottom shadow-lg">
+    <div class="max-w-md md:max-w-2xl lg:max-w-4xl mx-auto flex justify-around items-center py-2 px-1">
+      
+      <!-- Nav 1: 홈 -->
+      <button onclick="switchNav('view-home')" id="nav-view-home" class="nav-item active flex-1 flex flex-col items-center justify-center text-slate-500 text-[10px] font-medium py-1 active:scale-95 transition">
+        <svg class="w-5 h-5 mb-0.5 stroke-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+        <span>홈</span>
+      </button>
+
+      <!-- Nav 2: 연도별 -->
+      <button onclick="switchNav('view-yearly')" id="nav-view-yearly" class="nav-item flex-1 flex flex-col items-center justify-center text-slate-500 text-[10px] font-medium py-1 active:scale-95 transition">
+        <svg class="w-5 h-5 mb-0.5 stroke-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+        <span>연도별</span>
+      </button>
+
+      <!-- Nav 3: 학과별 -->
+      <button onclick="switchNav('view-depts')" id="nav-view-depts" class="nav-item flex-1 flex flex-col items-center justify-center text-slate-500 text-[10px] font-medium py-1 active:scale-95 transition">
+        <svg class="w-5 h-5 mb-0.5 stroke-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path></svg>
+        <span>학과별</span>
+      </button>
+
+      <!-- Nav 4: 전형별 -->
+      <button onclick="switchNav('view-tracks')" id="nav-view-tracks" class="nav-item flex-1 flex flex-col items-center justify-center text-slate-500 text-[10px] font-medium py-1 active:scale-95 transition">
+        <svg class="w-5 h-5 mb-0.5 stroke-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+        <span>전형별</span>
+      </button>
+
+      <!-- Nav 5: 전략 -->
+      <button onclick="switchNav('view-strategy')" id="nav-view-strategy" class="nav-item flex-1 flex flex-col items-center justify-center text-slate-500 text-[10px] font-medium py-1 active:scale-95 transition">
+        <svg class="w-5 h-5 mb-0.5 stroke-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+        <span>입시전략</span>
+      </button>
+
+    </div>
+  </nav>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // 1. DATASETS
+    const yearlyData = [
+      { year: 2020, total: 4938, change: 0, changeRate: 0, inQuota: 3349, outQuota: 1589, partTime: 164, ind: 720, mil: 281, opp: 167, bachelor: 335, note: "코로나 발발 초기, 비대면 교육 시작" },
+      { year: 2021, total: 6112, change: 1174, changeRate: 23.8, inQuota: 4343, outQuota: 1769, partTime: 127, ind: 651, mil: 336, opp: 213, bachelor: 457, note: "역대 최고 피크 달성 (사회복지·상담 폭증)" },
+      { year: 2022, total: 5432, change: -680, changeRate: -11.1, inQuota: 3713, outQuota: 1719, partTime: 100, ind: 633, mil: 180, opp: 256, bachelor: 539, note: "엔데믹 전환 초기 지원자 조정기 진입" },
+      { year: 2023, total: 5617, change: 185, changeRate: 3.4, inQuota: 3632, outQuota: 1985, partTime: 115, ind: 706, mil: 287, opp: 303, bachelor: 580, note: "외식조리경영학부 확대 개편 등 추진" },
+      { year: 2024, total: 4927, change: -690, changeRate: -12.3, inQuota: 3102, outQuota: 1825, partTime: 122, ind: 717, mil: 87, opp: 274, bachelor: 609, note: "엔데믹 저점 기록, 재난안전학부 개편 착수" },
+      { year: 2025, total: 5282, change: 355, changeRate: 7.2, inQuota: 3370, outQuota: 1912, partTime: 125, ind: 713, mil: 114, opp: 299, bachelor: 672, note: "전자정보공학과 신설(112), 1차 반등" },
+      { year: 2026, total: 5640, change: 358, changeRate: 6.8, inQuota: 3711, outQuota: 1929, partTime: 161, ind: 633, mil: 155, opp: 336, bachelor: 688, note: "재난안전(501) + 건축·기계 신설(391) 2차 대반등" }
+    ];
+
+    const deptMatrix = [
+      {
+        name: "재난안전학부 (구 미래인간과학)",
+        category: "안전·공학",
+        bcg: "star",
+        bcgName: "Stars (스타)",
+        history: [188, 197, 144, 179, 326, 402, 501],
+        total: 1937,
+        trend: "3년 만에 2.8배 폭증",
+        y2026Detail: { total: 501, inQuota: 267, outQuota: 234, bachelor: 26, ind: 127 },
+        persona: "30~45세 건설/제조/플랜트 안전관리자, 소방공무원 준비생",
+        usp: "산업안전기사 / 소방설비기사 시험 자격 충족 및 교육과정 매핑",
+        strategy: "기사 자격증 취득반 정규화 및 100대 기업 안전부서 B2B 위탁 집중 유치"
+      },
+      {
+        name: "한국어문화학부(과)",
+        category: "인문·어학",
+        bcg: "star",
+        bcgName: "Stars (스타)",
+        history: [400, 370, 392, 377, 406, 410, 429],
+        total: 2784,
+        trend: "견고한 1위 우상향",
+        y2026Detail: { total: 429, inQuota: 169, outQuota: 260, bachelor: 188, ind: 31 },
+        persona: "30~55세 4년제 대졸 직장인, 해외 진출/은퇴 준비자",
+        usp: "한국어교원 2급 자격증 + 다문화사회전문가 2급 2년 완성",
+        strategy: "학사편입 전용 퍼포먼스 마케팅 집중 집행 및 해외 온라인 세종학당 연계"
+      },
+      {
+        name: "사회복지학부",
+        category: "사회복지",
+        bcg: "cashcow",
+        bcgName: "Cash Cows (현금젖소)",
+        history: [636, 811, 647, 709, 537, 504, 566],
+        total: 4410,
+        trend: "24년 저점 후 반등 (+12%)",
+        y2026Detail: { total: 566, inQuota: 321, outQuota: 245, bachelor: 90, ind: 66 },
+        persona: "35~60세 성인학습자, 복지재단 종사자, 인생2막 준비자",
+        usp: "사회복지사 1급 시험대비반 무상 운영 및 전국 동문 실습 네트워크",
+        strategy: "지자체 복지공단 장학 협약 및 기회균형/학사편입 맞춤형 등록금 감면"
+      },
+      {
+        name: "미디어문예창작학과",
+        category: "문화·예술",
+        bcg: "star",
+        bcgName: "Stars (스타)",
+        history: [148, 170, 170, 174, 177, 197, 211],
+        total: 1247,
+        trend: "7개년 연속 지속 상승 (+42.6%)",
+        y2026Detail: { total: 211, inQuota: 136, outQuota: 75, bachelor: 40, ind: 15 },
+        persona: "20~50대 웹소설/웹툰 스토리 작가 지망생, 직장인 창작자",
+        usp: "국내 최정상급 문예창작 교수진 멘토링 및 플랫폼 연계 등단 트랙",
+        strategy: "웹소설 산학 제휴 공모전 개최 및 2030 영타깃 SNS 마케팅"
+      },
+      {
+        name: "세무회계학과",
+        category: "상경",
+        bcg: "cashcow",
+        bcgName: "Cash Cows (현금젖소)",
+        history: [231, 352, 392, 441, 374, 390, 323],
+        total: 2503,
+        trend: "상경계열 부동의 1위",
+        y2026Detail: { total: 323, inQuota: 242, outQuota: 81, bachelor: 32, ind: 25 },
+        persona: "25~45세 기업 회계 실무자, 세무사/CPA 수험생",
+        usp: "전산세무 1급 및 재경관리사 자격증 연계, 실무형 세무특강",
+        strategy: "전산회계 자격 보유자 대상 편입학 장학 연계 및 직무스킬업 프로모션"
+      },
+      {
+        name: "상담심리학과",
+        category: "사회과학",
+        bcg: "cashcow",
+        bcgName: "Cash Cows (현금젖소)",
+        history: [422, 606, 504, 492, 385, 387, 335],
+        total: 3131,
+        trend: "코로나 피크 후 완만 조정",
+        y2026Detail: { total: 335, inQuota: 198, outQuota: 137, bachelor: 63, ind: 28 },
+        persona: "30~55세 전문상담사 전환 희망자, 심리치료 지망생",
+        usp: "청소년상담사 3급, 직업상담사, 임상심리사 자격 취득 트랙",
+        strategy: "오프라인 상담 실습센터 인프라 홍보 및 미술/음악치료 융합트랙 강화"
+      },
+      {
+        name: "AI기계제어공학과 (2026 신설)",
+        category: "안전·공학",
+        bcg: "question",
+        bcgName: "Question Marks (신성장)",
+        history: [0, 0, 0, 0, 0, 0, 145],
+        total: 145,
+        trend: "첫해 145명 대성공 안착",
+        y2026Detail: { total: 145, inQuota: 97, outQuota: 48, bachelor: 9, ind: 25 },
+        persona: "25~40세 스마트팩토리/로봇 현장 엔지니어, 생산설비 기사",
+        usp: "AI 로보틱스 + 일반기계기사/메카트로닉스 공학사 학위 취득",
+        strategy: "스마트팩토리 산업단지(울산/창원/구미) B2B 협약 및 마이크로디그리 운영"
+      },
+      {
+        name: "스마트건축공학과 (2026 신설)",
+        category: "안전·공학",
+        bcg: "question",
+        bcgName: "Question Marks (신성장)",
+        history: [0, 0, 0, 0, 0, 0, 129],
+        total: 129,
+        trend: "첫해 129명 모집 성공",
+        y2026Detail: { total: 129, inQuota: 92, outQuota: 37, bachelor: 19, ind: 6 },
+        persona: "25~45세 건설사/인테리어/시공 감리 기술자, 전문대 건축 졸업생",
+        usp: "건축기사 자격증 응시자격 충족 + BIM 스마트건축 실무 교육",
+        strategy: "대한건축사협회 및 건설워커 제휴 광고, 가상 BIM 설계 실습 홍보"
+      },
+      {
+        name: "전자정보공학과 (2025 신설)",
+        category: "안전·공학",
+        bcg: "question",
+        bcgName: "Question Marks (신성장)",
+        history: [0, 0, 0, 0, 0, 112, 117],
+        total: 229,
+        trend: "2개년 연속 110명대 순항",
+        y2026Detail: { total: 117, inQuota: 82, outQuota: 35, bachelor: 7, ind: 21 },
+        persona: "20~35세 반도체/디스플레이/임베디드 하드웨어 테크니션",
+        usp: "전기기사 / 전자기사 자격증 매핑 커리큘럼 및 4년제 공학사",
+        strategy: "판교/수원/이천 반도체 클러스터 재직자 대상 산업체 장학 프로모션"
+      },
+      {
+        name: "일본학과",
+        category: "인문·어학",
+        bcg: "question",
+        bcgName: "Question Marks (신성장)",
+        history: [76, 101, 85, 115, 105, 134, 167],
+        total: 783,
+        trend: "어문계열 최고 성장 (+119.7%)",
+        y2026Detail: { total: 167, inQuota: 134, outQuota: 33, bachelor: 5, ind: 14 },
+        persona: "20~35세 일본 취업/이직 희망자, JLPT N1/N2 수험생",
+        usp: "JLPT 고득점 대비반 및 일본 IT/글로벌 현지 취업 연계 프로그램",
+        strategy: "일본 취업 에이전시 연계 산학협력 및 비즈니스 실무 커뮤니케이션 홍보"
+      },
+      {
+        name: "글로벌자율학부 (2025 신설)",
+        category: "글로벌",
+        bcg: "question",
+        bcgName: "Question Marks (신성장)",
+        history: [0, 0, 0, 0, 0, 36, 72],
+        total: 108,
+        trend: "전년대비 100% 급증",
+        y2026Detail: { total: 72, inQuota: 60, outQuota: 12, bachelor: 0, ind: 0 },
+        persona: "해외 거주 외국인, 다문화 가정 자녀, 글로벌 비즈니스 희망자",
+        usp: "100% 원격 한국 대학 학위 취득 및 K-컬처/비즈니스 전공 자율 선택",
+        strategy: "동남아/중앙아시아 현지 홍보 대행사 연계 및 해외 세종학당 제휴"
+      },
+      {
+        name: "호텔경영학과",
+        category: "호텔·관광",
+        bcg: "dog",
+        bcgName: "Dogs (재구조화)",
+        history: [158, 158, 116, 112, 112, 90, 82],
+        total: 828,
+        trend: "하락세 지속 (82명)",
+        y2026Detail: { total: 82, inQuota: 52, outQuota: 30, bachelor: 6, ind: 16 },
+        persona: "호텔/리조트 종사자, 외식 호스피탈리티 창업 희망자",
+        usp: "경희 호텔경영 전통 브랜드 네임밸류",
+        strategy: "『호스피탈리티 테크(PMS, 스마트호텔 무인화 솔루션)』로 전면 피보팅"
+      },
+      {
+        name: "관광레저항공경영학과",
+        category: "호텔·관광",
+        bcg: "dog",
+        bcgName: "Dogs (재구조화)",
+        history: [179, 147, 104, 94, 83, 66, 58],
+        total: 731,
+        trend: "역대 최저치 (58명)",
+        y2026Detail: { total: 58, inQuota: 46, outQuota: 12, bachelor: 3, ind: 7 },
+        persona: "항공사/여행사 재직자, 테마파크/레저 시설 매니저",
+        usp: "항공·관광 네트워크",
+        strategy: "『글로벌 트래블 테크(OTA 플랫폼, 여행 빅데이터)』 융합 개편"
+      },
+      {
+        name: "자산관리학부 (구 금융부동산)",
+        category: "상경",
+        bcg: "dog",
+        bcgName: "Dogs (재구조화)",
+        history: [228, 317, 258, 248, 170, 190, 161],
+        total: 1572,
+        trend: "부동산 경기 침체 영향",
+        y2026Detail: { total: 161, inQuota: 102, outQuota: 59, bachelor: 22, ind: 30 },
+        persona: "공인중개사 자격 보유자, 금융기관 종사자, 부동산 투자 희망자",
+        usp: "부동산학사 + 금융자산관리 실무",
+        strategy: "『프롭테크(PropTech) 및 AI 핀테크 자산배분 퀀트 실습』으로 리브랜딩"
+      }
+    ];
+
+    // 2. INITIALIZATION
+    document.addEventListener("DOMContentLoaded", () => {
+      renderYearlyCards();
+      renderMobileDeptCards();
+      renderMobileStrategyCards();
+      initMobileYearlyChart();
+      initMobileBachelorChart();
+
+      // Register Service Worker for PWA
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      }
+    });
+
+    // 3. NAVIGATION SWITCHING
+    function switchNav(viewId) {
+      document.querySelectorAll('.app-view').forEach(v => v.classList.add('hidden'));
+      document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+
+      const target = document.getElementById(viewId);
+      if (target) target.classList.remove('hidden');
+
+      const navBtn = document.getElementById('nav-' + viewId);
+      if (navBtn) navBtn.classList.add('active');
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // 4. VIEW 2: YEARLY
+    let mobileYearlyChartInstance = null;
+    function initMobileYearlyChart() {
+      const ctx = document.getElementById('mobileYearlyChart').getContext('2d');
+      mobileYearlyChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: yearlyData.map(d => d.year),
+          datasets: [
+            {
+              label: '정원내',
+              data: yearlyData.map(d => d.inQuota),
+              backgroundColor: '#00205B',
+              borderRadius: 3
+            },
+            {
+              label: '정원외',
+              data: yearlyData.map(d => d.outQuota),
+              backgroundColor: '#990000',
+              borderRadius: 3
+            },
+            {
+              label: '총지원자',
+              data: yearlyData.map(d => d.total),
+              type: 'line',
+              borderColor: '#1E293B',
+              borderWidth: 2,
+              pointRadius: 4,
+              pointBackgroundColor: '#1E293B',
+              tension: 0.1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } }
+          },
+          scales: {
+            x: { stacked: true, grid: { display: false } },
+            y: { stacked: true, beginAtZero: true, grid: { color: '#F1F5F9' } }
+          }
+        }
+      });
+    }
+
+    function renderYearlyCards() {
+      const container = document.getElementById('yearlyCardsContainer');
+      container.innerHTML = '';
+
+      // Reverse so 2026 is at top
+      [...yearlyData].reverse().forEach(row => {
+        const card = document.createElement('div');
+        card.className = "bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm space-y-2";
+        
+        let changeText = row.change > 0 ? `+${row.change.toLocaleString()}명 (+${row.changeRate}%)` : (row.change < 0 ? `${row.change.toLocaleString()}명 (${row.changeRate}%)` : "기준년도");
+        let changeBadge = row.change > 0 ? "bg-emerald-50 text-emerald-700" : (row.change < 0 ? "bg-red-50 text-red-700" : "bg-slate-100 text-slate-600");
+
+        card.innerHTML = `
+          <div class="flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+              <span class="font-extrabold text-sm text-slate-900">${row.year}학년도</span>
+              <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${changeBadge}">${changeText}</span>
+            </div>
+            <strong class="text-base font-black ${row.year === 2026 ? 'text-khu-red' : 'text-slate-900'}">${row.total.toLocaleString()}명</strong>
+          </div>
+          
+          <div class="grid grid-cols-4 gap-1.5 pt-2 border-t border-slate-100 text-center text-[11px]">
+            <div class="bg-slate-50 p-1 rounded">
+              <span class="text-slate-400 block text-[9px]">정원내</span>
+              <span class="font-bold text-slate-800">${row.inQuota.toLocaleString()}</span>
+            </div>
+            <div class="bg-slate-50 p-1 rounded">
+              <span class="text-slate-400 block text-[9px]">정원외</span>
+              <span class="font-bold text-khu-red">${row.outQuota.toLocaleString()}</span>
+            </div>
+            <div class="bg-slate-50 p-1 rounded">
+              <span class="text-slate-400 block text-[9px]">학사편입</span>
+              <span class="font-bold text-rose-600">${row.bachelor.toLocaleString()}</span>
+            </div>
+            <div class="bg-slate-50 p-1 rounded">
+              <span class="text-slate-400 block text-[9px]">산업체위탁</span>
+              <span class="font-bold text-blue-700">${row.ind.toLocaleString()}</span>
+            </div>
+          </div>
+          <p class="text-[10px] text-slate-500 bg-slate-50/80 px-2 py-1 rounded border border-slate-100/50">
+            📌 ${row.note}
+          </p>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // 5. VIEW 3: DEPTS
+    let currentDeptCat = 'all';
+    function filterMobileDeptCat(cat) {
+      currentDeptCat = cat;
+      document.querySelectorAll('.cat-chip').forEach(b => {
+        b.className = "cat-chip text-[11px] font-medium px-3 py-1 rounded-full bg-slate-100 text-slate-600 whitespace-nowrap";
+      });
+      event.target.className = "cat-chip active text-[11px] font-bold px-3 py-1 rounded-full bg-slate-800 text-white whitespace-nowrap";
+      renderMobileDeptCards();
+    }
+
+    function filterMobileDepts() {
+      renderMobileDeptCards();
+    }
+
+    function renderMobileDeptCards() {
+      const container = document.getElementById('mobileDeptCardsList');
+      const search = document.getElementById('mobileDeptSearch') ? document.getElementById('mobileDeptSearch').value.toLowerCase() : '';
+      container.innerHTML = '';
+
+      const filtered = deptMatrix.filter(d => {
+        const matchesCat = currentDeptCat === 'all' || d.category === currentDeptCat;
+        const matchesSearch = d.name.toLowerCase().includes(search) || d.category.toLowerCase().includes(search);
+        return matchesCat && matchesSearch;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="p-8 text-center text-xs text-slate-400">일치하는 학과가 없습니다.</div>`;
+        return;
+      }
+
+      filtered.forEach(d => {
+        const card = document.createElement('div');
+        card.className = "bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm active:scale-[0.98] transition cursor-pointer flex justify-between items-center";
+        card.onclick = () => openDeptModal(d);
+
+        let badgeClass = "badge-" + d.bcg;
+
+        card.innerHTML = `
+          <div>
+            <div class="flex items-center space-x-1.5 mb-1">
+              <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full ${badgeClass}">${d.bcgName.split(' ')[0]}</span>
+              <span class="text-[10px] text-slate-400">${d.category}</span>
+            </div>
+            <strong class="text-xs text-slate-900 block font-bold">${d.name}</strong>
+            <span class="text-[10px] text-slate-500">${d.trend}</span>
+          </div>
+
+          <div class="text-right">
+            <span class="text-[10px] text-slate-400 block">2026 지원자</span>
+            <strong class="text-sm font-black text-khu-red">${d.y2026Detail.total}명</strong>
+            <span class="text-[10px] text-slate-400 block">누적 ${d.total.toLocaleString()}명</span>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // Modal logic
+    let modalChartInstance = null;
+    function openDeptModalByName(name) {
+      const dept = deptMatrix.find(d => d.name === name);
+      if (dept) openDeptModal(dept);
+    }
+
+    function openDeptModal(dept) {
+      document.getElementById('modalDeptCategory').textContent = dept.category;
+      document.getElementById('modalDeptName').textContent = dept.name;
+      document.getElementById('modalDept2026').textContent = dept.y2026Detail.total + '명';
+      document.getElementById('modalDeptTotal').textContent = dept.total.toLocaleString() + '명';
+      document.getElementById('modalDeptBachelor').textContent = dept.y2026Detail.bachelor + '명';
+      document.getElementById('modalDeptPersona').textContent = dept.persona;
+      document.getElementById('modalDeptUsp').textContent = dept.usp;
+      document.getElementById('modalDeptStrategy').textContent = dept.strategy;
+
+      const modal = document.getElementById('deptBottomSheet');
+      modal.classList.remove('hidden');
+
+      // Render Modal Line Chart
+      const ctx = document.getElementById('modalTrendChart').getContext('2d');
+      if (modalChartInstance) modalChartInstance.destroy();
+      modalChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['2020', '2021', '2022', '2023', '2024', '2025', '2026'],
+          datasets: [{
+            data: dept.history,
+            borderColor: '#990000',
+            backgroundColor: 'rgba(153, 0, 0, 0.1)',
+            fill: true,
+            borderWidth: 2,
+            pointRadius: 4,
+            pointBackgroundColor: '#00205B',
+            tension: 0.2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, grid: { color: '#FFFFFF' } },
+            x: { grid: { display: false } }
+          }
+        }
+      });
+    }
+
+    function closeDeptModal() {
+      document.getElementById('deptBottomSheet').classList.add('hidden');
+    }
+
+    // 6. VIEW 4: TRACKS
+    function initMobileBachelorChart() {
+      const ctx = document.getElementById('mobileBachelorChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: yearlyData.map(d => d.year),
+          datasets: [{
+            label: '학사편입 지원자수 (7개년 연속↑)',
+            data: yearlyData.map(d => d.bachelor),
+            borderColor: '#990000',
+            backgroundColor: 'rgba(153, 0, 0, 0.1)',
+            fill: true,
+            borderWidth: 2.5,
+            pointRadius: 4,
+            tension: 0.1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } },
+          scales: {
+            y: { beginAtZero: true, grid: { color: '#F8FAFC' } },
+            x: { grid: { display: false } }
+          }
+        }
+      });
+    }
+
+    // 7. VIEW 5: STRATEGY
+    let currentMobileBcg = 'all';
+    function filterMobileBcg(type) {
+      currentMobileBcg = type;
+      document.querySelectorAll('.mobile-bcg-btn').forEach(b => {
+        b.className = "mobile-bcg-btn text-[11px] font-medium px-3 py-1 rounded-full bg-slate-100 text-slate-600 whitespace-nowrap";
+      });
+      event.target.className = "mobile-bcg-btn active text-[11px] font-bold px-3 py-1 rounded-full bg-slate-800 text-white whitespace-nowrap";
+      renderMobileStrategyCards();
+    }
+
+    function renderMobileStrategyCards() {
+      const container = document.getElementById('mobileStrategyCardsList');
+      container.innerHTML = '';
+
+      const filtered = currentMobileBcg === 'all' ? deptMatrix : deptMatrix.filter(d => d.bcg === currentMobileBcg);
+
+      filtered.forEach(d => {
+        const card = document.createElement('div');
+        card.className = "bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-2";
+        let badgeClass = "badge-" + d.bcg;
+
+        card.innerHTML = `
+          <div class="flex justify-between items-start">
+            <div>
+              <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full ${badgeClass}">${d.bcgName}</span>
+              <h4 class="font-bold text-slate-900 text-xs mt-1">${d.name}</h4>
+            </div>
+            <div class="text-right">
+              <span class="text-[9px] text-slate-400 block">2026 실적</span>
+              <strong class="text-xs font-black text-khu-red">${d.y2026Detail.total}명</strong>
+            </div>
+          </div>
+
+          <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100 text-[11px] space-y-1">
+            <p><strong class="text-slate-700">🎯 타깃:</strong> ${d.persona}</p>
+            <p><strong class="text-slate-700">💡 USP:</strong> ${d.usp}</p>
+          </div>
+
+          <div class="bg-red-50/60 p-2.5 rounded-lg border border-red-100 text-[11px]">
+            <strong class="text-khu-red block font-bold mb-0.5">🚀 실행 액션:</strong>
+            <p class="text-slate-700 leading-relaxed">${d.strategy}</p>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // 8. UTILS & MODALS
+    function showInfoModal() {
+      document.getElementById('infoModal').classList.remove('hidden');
+    }
+    function hideInfoModal() {
+      document.getElementById('infoModal').classList.add('hidden');
+    }
+
+    function shareApp() {
+      if (navigator.share) {
+        navigator.share({
+          title: '경희사이버대 입시통계 & 미래전략 앱',
+          text: '경희사이버대학교 7개년 입시통계 및 미래 전략 모바일 대시보드',
+          url: window.location.href
+        }).catch(() => {});
+      } else {
+        alert('현재 URL 주소가 복사되었습니다. 모바일 카카오톡이나 브라우저에 붙여넣어 공유하세요!');
+      }
+    }
+
+    function dismissPwaBanner() {
+      document.getElementById('pwaBanner').style.display = 'none';
+    }
+
+    function installPwaAction() {
+      alert('아이폰(사파리): 하단 공유버튼 [↑] 누른 후 [홈 화면에 추가]\n안드로이드(크롬): 우측 상단 메뉴 [⋮] 누른 후 [앱 설치] 또는 [홈 화면에 추가]');
+    }
+
+    function downloadCSV() {
+      let csvContent = "\uFEFF학년도,학과명,분류,2026지원자,7개년누적,주요추세,타깃페르소나,핵심USP,미래전략\n";
+      deptMatrix.forEach(d => {
+        csvContent += `2026,"${d.name}","${d.category}",${d.y2026Detail.total},${d.total},"${d.trend}","${d.persona}","${d.usp}","${d.strategy}"\n`;
+      });
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `경희사이버대_입시데이터_모바일배포_${new Date().toISOString().slice(0,10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+  </script>
+</body>
+</html>
